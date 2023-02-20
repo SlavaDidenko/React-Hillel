@@ -3,9 +3,12 @@ import React from "react";
 export class Button extends React.Component {
 
     render() {
-        const {type, text} = this.props
+        const {type, text, onClick} = this.props
         return (
-            <button type={type}>{text}</button>
+            <button
+                onClick={onClick}
+                type={type}>{text}
+            </button>
         )
     }
 }

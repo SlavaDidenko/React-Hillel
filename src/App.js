@@ -1,6 +1,6 @@
 import React from "react";
 import './App.sass';
-import Todo from "./components/Todo/Todo";
+import Contacts from "./components/Contacts/Contacts";
 
 export class App extends React.Component {
 
@@ -9,7 +9,7 @@ export class App extends React.Component {
     return(
         <>
           <main>
-            <Todo></Todo>
+            <Contacts></Contacts>
           </main>
         </>
     )
