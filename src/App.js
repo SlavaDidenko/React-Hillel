@@ -1,97 +1,74 @@
-import React from "react";
-import './App.sass';
-import axios from "axios";
-import {People} from "./components/People/People";
-import Starships from "./components/Starships/Starships";
-import Planets from "./components/Planets/Planets";
-import ClipLoader from "react-spinners/ClipLoader";
+import React, {useEffect, useRef} from 'react';
+import {useDispatch, useSelector} from "react-redux";
+import {
+    asyncListActionCreator, setCurrentActionCreator,
+    setErrorActionCreator,
+    setTypeActionCreator,
+    toggleLoaderActionCreator
+} from "./store/reducers/starWarReducers";
+import './App.sass'
+import {BarLoader} from "react-spinners";
+import Card from "./components/Card";
 
-export class App extends React.Component {
-    constructor() {
-        super();
-    }
+const App = () => {
+    const dispatch = useDispatch();
+    const {listStarWars, loading, error,type} = useSelector(store => store.star);
+    const arrTypes = ["people", "planets", "starships"]
 
-    state = {
-        type : 'people',
-        data : {},
-        loading : true,
-        error: false,
-    }
+    useEffect(() => {
+        dispatch(asyncListActionCreator());
+    },[])
 
-    getPeople = async () => {
+    useEffect(() => {
+        if (listStarWars.length) dispatch(setCurrentActionCreator(listStarWars[0]));
+    },[listStarWars])
+
+    const setList = (type) => {
         try {
-            const response = await axios.get(`https://swapi.dev/api/${this.state.type}/2/`);
-            this.setState({data : response.data, loading: false})
-        } catch (e) {
-            this.setState({error: true})
+            dispatch(toggleLoaderActionCreator());
+            dispatch(setTypeActionCreator(type));
+            dispatch(asyncListActionCreator());
+        } catch (e){
+            dispatch(setErrorActionCreator());
         }
     }
 
-    componentDidMount () {
-        this.getPeople();
+    const setCurrent = (data) => {
+        dispatch(setCurrentActionCreator(data));
     }
 
-
-
-    setType = async (type) => {
-        await this.setState({type: type, loading: true})
-        await this.getPeople();
-    }
-
-    render() {
-        const {error,loading,type,data} =  this.state;
-
-        return(
-            <>
-                <main>
-                    <div className="tab">
-                        <button
-                            className={type === "people" ? "active" : '' }
-                            onClick={() => this.setType('people')}
-                            type="button">People
-                        </button>
-                        <button
-                            className={type === "planets" ? "active" : '' }
-                            onClick={() => this.setType('planets')}
-                            type="button">
-                            Planets
-                        </button>
-                        <button
-                            className={type === "starships" ? "active" : '' }
-                            onClick={() => this.setType('starships')}
-                            type="button">Starships
-                        </button>
-                    </div>
+    return (
+        <div className="center container">
+            <div className="tabs">
+                {
+                    arrTypes.map((el ,i) => (
+                        <button key={i} className={`tab ${type === el? "active"  : ""}`} onClick={() => setList(el)} type="button">{el}</button>
+                    ))
+                }
+            </div>
+            <div className="row">
+                <ul className="list">
                     {
-                        error ? (
-                            <div>Oops</div>
-                        ) : (
-                            <>
-                                {
-                                    loading ? (
-                                        <ClipLoader/>
-                                    ) : (
-                                        <>
-                                            {
-                                                type === "people"  && <People data={data}/>
-                                            }
-                                            {
-                                                type === "planets"  && <Planets data={data}/>
-                                            }
-                                            {
-                                                type === "starships"  && <Starships data={data}/>
-                                            }
-                                        </>
-                                    )
-                                }
-                            </>
-                        )
+                        error ?
+                            <div>OOOOPS!</div>
+                        :
+                            loading ?
+                                <BarLoader/>
+                            :
+                                listStarWars?.map( item => (
+                                  <div onClick={() =>setCurrent(item)} key={item.name}> {item.name}</div>
+                                ))
                     }
+                </ul>
+                {loading?
+                    <div>Skeleton</div>
+                    :
+                    <Card/>
+                }
+            </div>
 
-                </main>
-            </>
-        )
-    }
-}
+        </div>
+    );
+};
 
-export default App
+export default App;
