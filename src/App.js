@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {
     asyncListActionCreator, setCurrentActionCreator,
@@ -9,11 +9,15 @@ import {
 import './App.sass'
 import {BarLoader} from "react-spinners";
 import Card from "./components/Card";
+import {useUser} from "./context/userContext";
 
 const App = () => {
     const dispatch = useDispatch();
     const {listStarWars, loading, error,type} = useSelector(store => store.star);
-    const arrTypes = ["people", "planets", "starships"]
+    const {changeTheme,theme,dataLang,setLang} = useUser();
+    const arrTabs = dataLang.tabs;
+    const arrTypes = ["people", "planets", "starships"];
+
 
     useEffect(() => {
         dispatch(asyncListActionCreator());
@@ -38,11 +42,25 @@ const App = () => {
     }
 
     return (
-        <div className="center container">
+        <div className={`center container ${theme}`}>
+            <div className="row">
+                <select onChange={e => setLang(e.target.value)}>
+                    <option value="ukr">Ukr</option>
+                    <option value="eng">Eng</option>
+                </select>
+                <input
+                    onChange={changeTheme}
+                    type="checkbox"/>
+            </div>
             <div className="tabs">
                 {
                     arrTypes.map((el ,i) => (
-                        <button key={i} className={`tab ${type === el? "active"  : ""}`} onClick={() => setList(el)} type="button">{el}</button>
+                        <button
+                            key={i}
+                            className={`tab ${type === el? "active"  : ""}`}
+                            onClick={() => setList(el)}
+                            type="button">{arrTabs[i]}
+                        </button>
                     ))
                 }
             </div>
@@ -50,18 +68,20 @@ const App = () => {
                 <ul className="list">
                     {
                         error ?
-                            <div>OOOOPS!</div>
+                            <div>{dataLang.error}</div>
                         :
                             loading ?
                                 <BarLoader/>
                             :
                                 listStarWars?.map( item => (
-                                  <div onClick={() =>setCurrent(item)} key={item.name}> {item.name}</div>
+                                  <div onClick={() =>setCurrent(item)}
+                                       key={item.name}>{item.name}
+                                  </div>
                                 ))
                     }
                 </ul>
                 {loading?
-                    <div>Skeleton</div>
+                    <div>{dataLang.skeleton}</div>
                     :
                     <Card/>
                 }
